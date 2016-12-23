@@ -11,9 +11,10 @@ db = MySQLdb.connect(
     charset='utf8')
 
 cursor = db.cursor()
-#cursor.execute("select * from Student")
-#data=cursor.fetchone()
-#print data
+print cursor.description
+cursor.execute("select count(*) from Course")
+data=cursor.fetchone()
+print data
 #sql = 'insert into Course(cid, cname) values("b1", "english")'
 #sql = 'insert into Course values("a1", "math", "b1")'
 #sql = 'update Course set cname="x" where cid="b1"'

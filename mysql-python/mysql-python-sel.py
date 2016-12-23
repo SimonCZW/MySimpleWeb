@@ -11,9 +11,10 @@ db = MySQLdb.connect(
     charset='utf8')
 
 cursor = db.cursor()
-sql = 'select * from Course'
+sql = 'select * from %s'
 try:
-    cursor.execute(sql)
+    cursor.execute(sql % 'Course')
+    #print cursor.description
     results = cursor.fetchall()
     for row in results:
         #print row
@@ -24,5 +25,7 @@ try:
 except Exception,e:
     print e
     db.rollback()
+finally:
+    cursor.close()
 db.close()
 
