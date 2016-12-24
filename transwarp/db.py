@@ -38,6 +38,16 @@ def with_connection(func):
             return func(*args, **kw)
     return _wrapper
 
+def transation():
+    return _TransationCtx()
+
+def with_transation(func):
+    @functools.wraps(func)
+    def _wrapper(*args, **kw):
+        with _TransactionCtx():
+            return func(*args, **kw)
+    return _wrapper
+
 @with_connection
 def _select(sql, single=False, *args):
     global _dbctx
@@ -45,7 +55,8 @@ def _select(sql, single=False, *args):
     sql = sql.replace('?', '%s')
 
     try:
-        cursor = _dbctx.connection.cursor()
+        cursor = _dbctx.cursor()
+        #cursor = _dbctx.connection.cursor()
         cursor.execute(sql % args)
         names = [ x[0] for x in cursor.description]
         if single:
@@ -55,7 +66,7 @@ def _select(sql, single=False, *args):
             return Dict(names, values)
         return [Dict(names, values) for values in cursor.fetchall()]
     except Exception,e:
-        raise SelectError(e)
+        raise ExecuteError(e)
     finally:
         if cursor:
             cursor.close()
@@ -74,6 +85,33 @@ def select_count(sql, *args):
     if len(_data) != 1:
         raise MultiColumnsError('Expect only one column.')
     return _data.values()[0]
+
+@with_connection
+def _update(sql, *args):
+    global _dbctx
+    cursor = None
+    sql = sql.replace('?', '%s')
+    try:
+        #cursor = _dbctx.connection.cursor()
+        cursor = _dbctx.cursor()
+        cursor.execute(sql % args)
+        row_number = cursor.rowcount
+        try:
+            if _dbctx.transactions == 0:
+                _dbctx.commit()
+                #_dbctx.connection.commit()
+            return row_number
+        except:
+            _dbctx.rollback()
+            return 0
+    except Exception,e:
+        raise ExecuteError(e)
+    finally:
+        if cursor:
+            cursor.close()
+
+def update(sql, *args):
+    return _update(sql, *args)
 
 class Dict(dict):
     """
@@ -97,7 +135,7 @@ class DBError(Exception):
     def __init__(self, meessage):
         return message
 
-class SelectError(Exception):
+class ExecuteError(Exception):
     def __init__(self, message):
         return message
 
@@ -147,6 +185,7 @@ class _Dbctx(threading.local):
     """
     def __init__(self):
         self.connection = None
+        self.transactions = 0
 
     def is_not_init(self):
         return self.connection is None
@@ -164,6 +203,12 @@ class _Dbctx(threading.local):
     def cursor(self):
         return self.connection.cursor()
 
+    def commit(self):
+        self.connection.commit()
+
+    def rollback(self):
+        self.connection.rollback()
+
 _dbctx = _Dbctx()
 class _ConnectionCtx(object):
     """
@@ -175,26 +220,68 @@ class _ConnectionCtx(object):
         """
         global _dbctx
         self.should_clean = False
-        print "__enter__"
-        #fix bug:
-        #error syntx :if not _dbctx.is_init: 返回了一个函数对象为true,导致出错
-        #right : if not _dbctx.is_init(): 有括号函数返回了结果False
+        #print "__enter__"
+        #fix bug:error syntx :if not _dbctx.is_init: 返回了一个函数对象为true,导致出错
         if _dbctx.is_not_init():
-            print "init"
+            #print "init"
             _dbctx.init()
             self.should_clean = True
         return self
 
-    def __exit__(self, type, value, trace):
+    def __exit__(self, exctype, value, trace):
         """
         释放连接
         """
         global _dbctx
-        print "__exit__"
+        #print "__exit__"
         if self.should_clean:
-            print "cleanup"
+            #print "cleanup"
             _dbctx.cleanup()
             self.should_clean = False
+
+class _TransationCtx(object):
+    """
+    事务嵌套,嵌套一层+1,离开一层-1,0时提交
+    """
+    def __enter__(self):
+        global _dbctx
+        self.should_clean = False
+        if _dbctx.is_not_init():
+            _dbctx.init()
+            self.should_close = True
+        #需要使用全局对象
+        _dbctx.transactions = _dbctx.transactions + 1
+        return self
+
+    def __exit__(self, exctype, value, trace):
+        global _dbctx
+        _dbctx.transactions = _dbctx.transactions - 1
+        try:
+            if _dbctx.transactions == 0:
+                if exctype is None:
+                    self.commit()
+                else:
+                    self.rollback()
+        finally:
+            if slef.should_clean:
+                _dbctx.cleanup()
+                self.should_close = False
+
+    def commit():
+        global _dbctx
+        try:
+            #_dbctx.connection.commit()
+            _dbctx.commit()
+        except:
+            #_dbctx.connection.rollback()
+            _dbctx.rollback()
+            raise
+
+    def rollback():
+        global _dbctx
+        #_dbctx.connection.rollback()
+        _dbctx.rollback()
+
 
 
 if __name__ == '__main__':
