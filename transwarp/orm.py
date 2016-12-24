@@ -62,6 +62,51 @@ class Model(dict):
         """
         用法:user = User.get('primary_key')
         """
+        #print cls.__table__
+        #print cls.__primary_key__
+        data = db.select_one('select * from %s where %s="?"' % (cls.__table__, cls.__primary_key__), primary_key)
+        return cls(**data) if data else None
+
+    @classmethod
+    def find_first(cls, where='', *args):
+        """
+        where语句条件查询,返回第一个
+        用法: Class.find_first(where)
+        """
+        d = db.select_one('select * from %s %s' % (cls.__table__, where), *args)
+        return cls(**d) if d else None
+
+    @classmethod
+    def find_all(cls, *args):
+        """
+        用法: Class.find_all()
+        """
+        L = db.select('select * from %s' % cls.__table__)
+        return [cls(**d) for d in L]
+
+    @classmethod
+    def find_by(cls, where='', *args):
+        """
+        用法: Class.find_by(where),返回全部对象组成List
+        """
+        L = db.select('select * from %s %s' % (cls.__table__, where), *args)
+        return [cls(**d) for d in L]
+
+    @classmethod
+    def count_all(cls):
+        """
+        用法: Class.count_all(),返回此类对应表的数据行数
+        """
+        return db.select_count('select count(*) from %s' % (cls.__table__))
+
+    @classmethod
+    def count_by(cls, where='', *args):
+        """
+        用法: Class.count_by(where),根据查询条件where返回行数
+        """
+        return db.select_count('select count(*) from %s %s' %
+                (cls.__table__, where), *args)
+
 
     def insert(self):
         """
@@ -98,21 +143,6 @@ class Model(dict):
         delete_row = db.delete(self.__table__, self.__primary_key__, **params)
         return self
 
-    def find_first(self):
-        pass
-
-    def find_all(self):
-        pass
-
-    def find_by(self):
-        pass
-
-    def count_all(self):
-        pass
-
-    def count_by(self):
-        pass
-
 
 
 if __name__ == '__main__':
@@ -122,18 +152,20 @@ if __name__ == '__main__':
         cid = StringField()
         cname = StringField()
         precid = StringField()
-
     db.create_engine('root', 'woaini520', 'university')
-    user=User(cid='a7', cname='orm2fix', precid='c2')
-    with db.connection():
-        user.insert()
-        user.delete()
-        user.update()
-
-    #print user.mappings
+    #user=User(cid='a7', cname='orm2fix', precid='c2')
     #print user
-
-
+    #with db.connection():
+    #    user.insert()
+    #    user.delete()
+    #    user.update()
+    #print User.get('a7')
+    #print User.count_all()
+    #print User.count_by()
+    #print User.count_by('where cname="orm2fix"')
+    #print User.find_first('where cname="orm2fix"')
+    #print User.find_all()
+    #print User.find_by('where cname="orm2fix"')
 
 
 
