@@ -126,9 +126,6 @@ def insert(table, **kw):
     return _update(sql)
 
 def delete(table, primary_key, **kw):
-    """
-    根据primary_key删除
-    """
     primary_value = kw.get(primary_key)
     delete_old_sql = "delete from ? where ? = '?'"
     return _update(delete_old_sql, table, primary_key, primary_value)
@@ -137,9 +134,13 @@ def update(table, primary_key, **kw):
     """
     先删除旧数据，再插入新数据
     """
+    #primary_value = kw.get(primary_key)
+    #delete_old_sql = "delete from ? where ? = '?'"
     with connection():
         delete_row = delete(table, primary_key, **kw)
-        return insert(table, **kw)
+        #判断删除旧数据成功
+        if row == 1:
+            return insert(table, **kw)
 
 class Dict(dict):
     """

@@ -6,7 +6,6 @@ db.create_engine('root', 'woaini520', 'university')
 #双层with,测试可在__enter__和__exit__中插入输出观察.
 #这里为第一层with,第二层为_select的装饰器.
 with db.connection():
-    pass
     #BASE TEST 1
     #select
     #print db.select_count("select count(*) from ?", 'Course')
@@ -14,8 +13,8 @@ with db.connection():
     #print db.select("select * from ?", 'Course')
 
     #insert
-    #print db.update("insert into Course values('?', '?', '?')",
-    #                'a4', 'phy', 'b4')
+    print db._update("insert into Course values('?', '?', '?')",
+                    'a2', 'ng', 'b2')
 
     #delete
     #print db.update("delete from Course where cid = '?'", 'a4')

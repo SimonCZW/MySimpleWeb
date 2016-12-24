@@ -15,9 +15,10 @@ cursor = db.cursor()
 #cursor.execute("select count(*) from Course")
 #data=cursor.fetchone()
 #print data
-#sql = 'insert into Course(cid, cname) values("b1", "english")'
+sql = 'insert into Course(precid, cname, cid) values("b8", "english2", "a8")'
+print sql
 #sql = 'insert into Course values("a1", "math", "b1")'
-sql = 'update Course set cname="math2" where cid="a1"'
+#sql = 'update Course set cname="math2" where cid="a1"'
 #sql = 'delete from Course where cid="b1"'
 try:
     cursor.execute(sql)
