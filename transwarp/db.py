@@ -141,6 +141,9 @@ def update(table, primary_key, **kw):
         delete_row = delete(table, primary_key, **kw)
         return insert(table, **kw)
 
+def execute_sql(sql, *args):
+    return _update(sql, *args)
+
 class Dict(dict):
     """
     字典对象,扩展实现传入两个元组将其对应放入字典k-v
