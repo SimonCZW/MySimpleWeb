@@ -2,20 +2,89 @@
 # -*- coding:utf-8 -*-
 import db
 
+def _gen_sql(table, mappings):
+    """
+    生成表的sql
+    """
+    #print "table:", table
+    #for k,v in mappings.iteritems():
+    #    print "k: %s, v: %s" % (k, v)
+    sql = 'create table %s(' % (table,)
+    #sorted高阶函数,前为排序值,后面为排序算法函数
+    for field in sorted(mappings.values(), lambda x,y: cmp(x._order,y._order)):
+        if not hasattr(field, 'ddl'):
+            raise  StandardError('no ddl in field "%s".' % field.name)
+        if field.nullable:
+            DDL = field.name + " " + field.ddl + ","
+        else:
+            DDL = field.name + " " + field.ddl + " " + "not null,"
+        sql = sql+DDL
+        if field.primary_key:
+            pk =  field.name
+    sql=sql+' primary key('+pk+') );'
+    return sql
+
 class Field(object):
+    _count = 0 #用于记录xxxField()顺序,建表时使用.
     def __init__(self, **kw):
         self.name = kw.get('name', None)
         self.primary_key = kw.get('primary_key', False)
+        self.ddl = kw.get('ddl', '')
+        self.nullable=  kw.get('nullable', False)
+        self._default = kw.get('defalut', None)
+        self._order = Field._count
+        Field._count += 1
     def __str__(self):
-        return "<%s:%s>" % (self.__class__.__name__, self.name)
+        return "<%s:%s,%s,default(%s)>" % (self.__class__.__name__
+                    , self.name, self.ddl, self._default)
 
 class StringField(Field):
     def __init__(self, **kw):
+        if 'default' not in kw:
+            kw['default'] = ''
+        if 'ddl' not in kw:
+            kw['ddl'] = 'varchar(255)'
         super(StringField, self).__init__(**kw)
+
+class DateField(Field):
+    def __init__(self, **kw):
+        if 'defalut' not in kw:
+            kw['default'] = ''
+        if 'ddl' not in kw:
+            kw['ddl'] = 'date'
+        super(DateField, self).__init__(**kw)
 
 class IntegerField(Field):
     def __init__(self, **kw):
+        if 'default' not in kw:
+            kw['default'] =  0
+        if 'ddl' not in kw:
+            kw['ddl'] = 'int'
         super(IntegerField, self).__init__(**kw)
+
+class FloatField(Field):
+    def __init__(self, **kw):
+        if 'default' not in kw:
+            kw['default'] =  0.0
+        if 'ddl' not in kw:
+            kw['ddl'] = 'real'
+        super(FloatField, self).__init__(**kw)
+
+class BooleanField(Field):
+    def __init__(self, **kw):
+        if 'default' not in kw:
+            kw['default'] =  False
+        if 'ddl' not in kw:
+            kw['ddl'] = 'bool'
+        super(BooleanField, self).__init__(**kw)
+
+class TextField(Field):
+    def __init__(self, **kw):
+        if 'default' not in kw:
+            kw['default'] = ''
+        if 'ddl' not in kw:
+            kw['ddl'] = 'text'
+        super(TextField, self).__init__(**kw)
 
 class ModelMetaclass(type):
     def __new__(cls, name, bases, attrs):
@@ -23,6 +92,7 @@ class ModelMetaclass(type):
         if name == 'Model':
             return type.__new__(cls, name, bases, attrs)
         mappings = dict()
+        primary_key = None
         for k,v in attrs.iteritems():
             if isinstance(v, Field):
                 #v-Field设置默认name字段
@@ -32,13 +102,18 @@ class ModelMetaclass(type):
                 #确定primary_key
                 if v.primary_key:
                     primary_key = v.name
+        #检查是否有primary_key
+        if not primary_key:
+            raise TypeError('Primary key is not defined in class: %s' % name)
         #移除已经放到mappings中的属性xxxField
         for k in mappings.iterkeys():
             attrs.pop(k)
         #加入new attribute
-        attrs['__primary_key__'] = v.name
+        if not '__table__' in attrs:
+            attrs['__table__'] = name #默认表名为类名
+        attrs['__create_sql__'] = lambda self: _gen_sql(attrs['__table__'], mappings)
+        attrs['__primary_key__'] =  primary_key
         attrs['__mappings__'] = mappings
-        #print attrs
         return type.__new__(cls, name, bases, attrs)
 
 class Model(dict):
@@ -107,7 +182,6 @@ class Model(dict):
         return db.select_count('select count(*) from %s %s' %
                 (cls.__table__, where), *args)
 
-
     def insert(self):
         """
         存入数据库
@@ -146,31 +220,40 @@ class Model(dict):
 
 
 if __name__ == '__main__':
-    class User(Model):
-        __table__ = 'Course'
-        #id = IntegerField(name='ID', primary_key=True)
-        cid = StringField()
+    class Course(Model):
+        """
+        主要xxxField的name属性为建表的属性,不然出错
+        """
+        cid = StringField(primary_key=True)
         cname = StringField()
         precid = StringField()
     db.create_engine('root', 'woaini520', 'university')
-    #user=User(cid='a7', cname='orm2fix', precid='c2')
-    #print user
+
     #with db.connection():
-    #    user.insert()
-    #    user.delete()
+        #db.execute_sql('create table Course(cid char(20) primary key,cname char(20),precid char(20))')
+        #db.execute_sql('create table Student(sid int primary key, sname char(20) not null,sex ENUM("m","w"),birthday date,department char(20))')
+        #db.execute_sql('create table Employ(sid int not null,cid char(20) not null,garde int,primary key(sid, cid),foreign key(sid) references Student(sid),foreign key(cid) references Course(cid))')
+        #db.execute_sql('drop table if exists Course')
+        #db.execute_sql('drop table if exists Student')
+        #db.execute_sql('drop table if exists Employ')
+
+    #print Course().__create_sql__()
+
+    course=Course(cid='a7', cname='orm2fix', precid='c2')
+    #kw = {'cname': 'orm2fix', 'cid': 'a7', 'precid': 'c2'}
+    #user = User(**kw)
+    #print course
+    #with db.connection():
+    #course.insert()
+    course.delete()
     #    user.update()
     #print User.get('a7')
-    #print User.count_all()
+    #print Course.count_all()
     #print User.count_by()
     #print User.count_by('where cname="orm2fix"')
     #print User.find_first('where cname="orm2fix"')
     #print User.find_all()
     #print User.find_by('where cname="orm2fix"')
-
-
-
-
-
 
 
 
