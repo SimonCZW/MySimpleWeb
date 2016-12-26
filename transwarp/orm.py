@@ -92,7 +92,7 @@ class ModelMetaclass(type):
         if name == 'Model':
             return type.__new__(cls, name, bases, attrs)
         mappings = dict()
-        primary_key = None
+        primary_keys = []
         for k,v in attrs.iteritems():
             if isinstance(v, Field):
                 #v-Field设置默认name字段
@@ -101,9 +101,9 @@ class ModelMetaclass(type):
                 mappings[k] = v
                 #确定primary_key
                 if v.primary_key:
-                    primary_key = v.name
+                    primary_keys.append(v.name)
         #检查是否有primary_key
-        if not primary_key:
+        if not primary_keys:
             raise TypeError('Primary key is not defined in class: %s' % name)
         #移除已经放到mappings中的属性xxxField
         for k in mappings.iterkeys():
@@ -112,7 +112,7 @@ class ModelMetaclass(type):
         if not '__table__' in attrs:
             attrs['__table__'] = name #默认表名为类名
         attrs['__create_sql__'] = lambda self: _gen_sql(attrs['__table__'], mappings)
-        attrs['__primary_key__'] =  primary_key
+        attrs['__primary_key__'] =  primary_keys
         attrs['__mappings__'] = mappings
         return type.__new__(cls, name, bases, attrs)
 
@@ -133,13 +133,21 @@ class Model(dict):
         self[key]=value
 
     @classmethod
-    def get(cls, primary_key):
+    def get(cls, primary_keys):
         """
-        用法:user = User.get('primary_key')
+        用法:user = User.get('{primary_key:value}')
+        primary_keys为字典
         """
-        #print cls.__table__
-        #print cls.__primary_key__
-        data = db.select_one('select * from %s where %s="?"' % (cls.__table__, cls.__primary_key__), primary_key)
+        #data = db.select_one('select * from %s where %s="?"' %
+        #    (cls.__table__, cls.__primary_key__), primary_key)
+        #多primary_key:
+        sql = ['select * from %s where ' % cls.__table__]
+        for k,v in primary_keys.iteritems():
+            sql.append('%s = "%s"' % (k, v))
+            if k != primary_keys.keys()[-1] :
+                sql.append(' and ')
+        sql=''.join(sql)
+        data = db.select_one(sql)
         return cls(**data) if data else None
 
     @classmethod
@@ -226,9 +234,14 @@ if __name__ == '__main__':
         """
         cid = StringField(primary_key=True)
         cname = StringField()
+        chours = IntegerField()
+        credit = FloatField()
         precid = StringField()
+
     db.create_engine('root', 'woaini520', 'university')
 
+    course = {'cid':'a1'}
+    print Course.get(**course)
     #with db.connection():
         #db.execute_sql('create table Course(cid char(20) primary key,cname char(20),precid char(20))')
         #db.execute_sql('create table Student(sid int primary key, sname char(20) not null,sex ENUM("m","w"),birthday date,department char(20))')
@@ -239,13 +252,13 @@ if __name__ == '__main__':
 
     #print Course().__create_sql__()
 
-    course=Course(cid='a7', cname='orm2fix', precid='c2')
+    #course=Course(cid='a7', cname='orm2fix', precid='c2')
     #kw = {'cname': 'orm2fix', 'cid': 'a7', 'precid': 'c2'}
     #user = User(**kw)
     #print course
     #with db.connection():
     #course.insert()
-    course.delete()
+    #course.delete()
     #    user.update()
     #print User.get('a7')
     #print Course.count_all()

@@ -125,20 +125,24 @@ def insert(table, **kw):
     sql =  "insert into %s(%s) values(%s)" % (table, keys, values)
     return _update(sql)
 
-def delete(table, primary_key, **kw):
+def delete(table, primary_keys, **kw):
     """
-    根据primary_key删除
+    根据primary_key删除, primary_keys为list
     """
-    primary_value = kw.get(primary_key)
-    delete_old_sql = "delete from ? where ? = '?'"
-    return _update(delete_old_sql, table, primary_key, primary_value)
+    delete_old_sql = ['delete from %s where ' % table]
+    for primary_key in primary_keys:
+        delete_old_sql.append('%s = "%s"' % (primary_key, kw.get(primary_key)))
+        if primary_key != primary_keys[-1]:
+            delete_old_sql.append(' and ')
+    delete_old_sql = ''.join(delete_old_sql)
+    return _update(delete_old_sql)
 
-def update(table, primary_key, **kw):
+def update(table, primary_keys, **kw):
     """
     先删除旧数据，再插入新数据
     """
     with connection():
-        delete_row = delete(table, primary_key, **kw)
+        delete_row = delete(table, primary_keys, **kw)
         return insert(table, **kw)
 
 def execute_sql(sql, *args):
