@@ -102,13 +102,14 @@ def _update(sql, *args):
         except:
             _dbctx.rollback()
             return 0
-    #插入主键重复数据
-    except MySQLdb.IntegrityError,e:
-        print "integrity error:", e
-    except MySQLdb.OperationalError,e:
-        print "operational error:", e
-    except Exception,e:
-        raise ExecuteError(e)
+    #将抛出错误给最上层调用views.py判断,所以注释掉
+    #插入主键重复数据,外键删除约束
+    #except MySQLdb.IntegrityError,e:
+    #    print "integrity error:", e
+    #except MySQLdb.OperationalError,e:
+    #    print "operational error:", e
+    #except Exception,e:
+    #    raise ExecuteError(e)
     finally:
         if cursor:
             cursor.close()
