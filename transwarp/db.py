@@ -103,8 +103,10 @@ def _update(sql, *args):
             _dbctx.rollback()
             return 0
     #插入主键重复数据
-    except MySQLdb.IntegrityError:
-        pass
+    except MySQLdb.IntegrityError,e:
+        print "integrity error:", e
+    except MySQLdb.OperationalError,e:
+        print "operational error:", e
     except Exception,e:
         raise ExecuteError(e)
     finally:
@@ -118,8 +120,8 @@ def insert(table, **kw):
     keys=''
     values=''
     for k, v in kw.iteritems():
-        keys = keys + k + ','
-        values = values + '"' + v + '"' + ','
+        keys = keys + str(k) + ','
+        values = values + '"' + str(v) + '"' + ','
     keys = keys[:-1]
     values = values[:-1]
     sql =  "insert into %s(%s) values(%s)" % (table, keys, values)

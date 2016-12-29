@@ -202,7 +202,8 @@ class Model(dict):
             params[v.name] =  self[k]
         #存入数据库
         row = db.insert(self.__table__, **params)
-        return self
+        #return self
+        return row
 
     def update(self):
         """
@@ -212,7 +213,8 @@ class Model(dict):
         for k,v in self.__mappings__.iteritems():
             params[v.name] = self[k]
         row = db.update(self.__table__, self.__primary_key__, **params)
-        return self
+        #return self
+        return row
 
     def delete(self):
         #获取主键对应xxxField的名字
@@ -223,8 +225,8 @@ class Model(dict):
         for k,v in self.__mappings__.iteritems():
             params[v.name] = self[k]
         delete_row = db.delete(self.__table__, self.__primary_key__, **params)
-        return self
-
+        #return self
+        return delete_row
 
 
 if __name__ == '__main__':
