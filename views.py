@@ -90,7 +90,7 @@ class StudentResource(Resource):
 
     def put(self, sid):
         """
-        用于修改sid对应的数据行
+        用于修改sid对应的数据行, 表单只需填写需要修改的数据项即可
         """
         parser.add_argument('sid', type=int)
         parser.add_argument('sname', type=str)
@@ -99,10 +99,20 @@ class StudentResource(Resource):
         parser.add_argument('birthdate', type=str)
         parser.add_argument('department', type=str)
         args = parser.parse_args()
-        stu = Student(**args)
-        update_row = stu.update()
-        if update_row == 1: #always success?
-            return stu
+        ModifyStudent = Student.get({'sid': sid})
+        #判断是否存在数据
+        if ModifyStudent is None:
+            return "no sid data for modify(put)"
+        #若表单给出sid,此sid与url对应不同报错
+        if args['sid'] is not None and args['sid'] != sid:
+            return "url's sid is not equal to form sid"
+        ModifyStudent['birthdate'] = datetime.datetime.strftime(ModifyStudent['birthdate'], '%Y%m%d')
+        for key, value in args.iteritems():
+            if value is not None:
+                ModifyStudent[key] = value
+        update_row = ModifyStudent.update()
+        if update_row == 1:
+            return ModifyStudent
         else:
             return "update error"
 
@@ -111,6 +121,9 @@ class StudentResource(Resource):
         删除sid对应数据行
         """
         OldStudent = Student.get({'sid':sid})
+        #判断是否有sid对应数据
+        if OldStudent is None:
+            return "no sid data for deleted"
         delete_row = OldStudent.delete()
         if delete_row == 1:
             return 'success delete %s' % sid, 200
