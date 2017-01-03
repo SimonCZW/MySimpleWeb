@@ -213,7 +213,6 @@ class Model(dict):
         for k,v in self.__mappings__.iteritems():
             params[v.name] = self[k]
         row = db.update(self.__table__, self.__primary_key__, **params)
-        #return self
         return row
 
     def delete(self):

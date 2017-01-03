@@ -157,6 +157,8 @@ class CourseAdd(Resource):
         parser.add_argument('precid', type=str)
         args = parser.parse_args()
         for key,value in args.iteritems():
+            if key == 'precid':
+                continue
             if value is None:
                 return {'error':"Please input field: %s" % key},400
         course = Course(**args)

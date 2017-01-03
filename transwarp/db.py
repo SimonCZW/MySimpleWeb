@@ -142,11 +142,25 @@ def delete(table, primary_keys, **kw):
 
 def update(table, primary_keys, **kw):
     """
-    先删除旧数据，再插入新数据
+    先获取再所有值构造sql
     """
-    with connection():
-        delete_row = delete(table, primary_keys, **kw)
-        return insert(table, **kw)
+    #先删除旧数据，再插入新数据,不满足约束
+    #with connection():
+    #    delete_row = delete(table, primary_keys, **kw)
+    #    return insert(table, **kw)
+    sql = ['update %s set ' % table]
+    for k, v in kw.iteritems():
+        if k in primary_keys:
+            continue
+        sql.append('%s="%s",' % (k,v))
+    sql[-1]=sql[-1].replace(',','')
+    sql.append(' where ')
+    for primary_key in primary_keys:
+        sql.append('%s = "%s"' % (primary_key, kw.get(primary_key)))
+        if primary_key != primary_keys[-1]:
+            sql.append(' and ')
+    sql=''.join(sql)
+    return _update(sql)
 
 def execute_sql(sql, *args):
     return _update(sql, *args)
