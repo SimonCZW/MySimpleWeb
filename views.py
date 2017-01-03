@@ -22,6 +22,15 @@ api = Api(app)
 
 db.create_engine('root', 'woaini520', 'university')
 
+def sortby(datas, sort_by, order):
+    #升序
+    if order == 'asc':
+        datas = sorted(datas, lambda x,y: cmp(x[sort_by], y[sort_by]))
+    #降序
+    if order == 'desc':
+        datas = sorted(datas, lambda x,y: cmp(y[sort_by], x[sort_by]))
+    return datas
+
 class StudentAdd(Resource):
     """
     获取所有学生数据或者新增一数据.
@@ -37,6 +46,11 @@ class StudentAdd(Resource):
             #datetime.date转换为str,使得可以jsonify
             for data in datas:
                 data['birthdate'] = datetime.datetime.strftime(data['birthdate'], '%Y%m%d')
+            #检查是否需要排序
+            sort_by = request.args.get('sortby')
+            order = request.args.get('order', 'asc')
+            if sort_by:
+                return sortby(datas, sort_by, order),200
             return datas, 200
         else:
             return {'error': "has no student data"}, 404
@@ -144,6 +158,10 @@ class CourseAdd(Resource):
     def get(self):
         datas = Course.find_all()
         if datas != []:
+            sort_by = request.args.get('sortby')
+            order = request.args.get('order', 'asc')
+            if sort_by:
+                return sortby(datas, sort_by, order),200
             return datas,200
         else:
             return {'error': "has no course data"},404
@@ -369,7 +387,4 @@ api.add_resource(EmployResource, '/api/employ/<int:sid>/<string:cid>', '/api/emp
 if __name__ == '__main__':
     with db.connection():
         app.run(host='0.0.0.0')
-
-
-
 
