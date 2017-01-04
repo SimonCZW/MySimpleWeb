@@ -1,0 +1,106 @@
+<html>
+<head>
+  <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+</head>
+<body>
+
+<form action="/api/students" method="post">
+  <p><label>学号：<input name="sid"></label></p>
+  <p><label>姓名：<input name="sname"></label></p>
+  <p><label>出身地：<input name="birthplace"></label></p>
+  <p><label>生日：<input name="birthdate"></label></p>
+  <p><label>学院：<input name="department"></label></p>
+  <fieldset>
+    <legend> 性别 </legend>
+    <label><input type="radio" name="sex" value="m"> 男 </label>
+    <label><input type="radio" name="sex" value="w"> 女 </label>
+  </fieldset>
+  <p><button>提交</button></p>
+</form>
+
+<form action="/api/courses" method="post">
+<p><label>课程编号：<input name="cid"></label></p>
+<p><label>课程名称：<input name="cname"></label></p>
+<p><label>学时：<input name="chours"></label></p>
+<p><label>学分：<input name="credit"></label></p>
+<p><label>先修课：<input name="department"></label></p>
+<p><button>提交</button></p>
+</form>
+
+
+<form action="/api/employs" method="post">
+<p><label>学号：<input name="sid"></label></p >
+<p><label>课程编号：<input name="cid"></label></p >
+<p><label>成绩：<input name="garde"></label></p >
+<p><button>提交</button></p >
+</form>
+
+
+<form action="/api/student/3113" method="POST">
+  <p><button>Students</button></p>
+</form>
+
+
+@{
+Layout=null
+}
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width"/>
+<title>Serialize_Deserialiaze_Demo</title>
+  <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
+<script type="text/javascript">
+
+$('#Button2').click(function(){
+$.ajax({
+Type:"POST",
+url:"/api/students",
+contentType:"application/json;charser=utf-8",
+success:function(data){
+var tbody =$('#tbody1').empty();
+$.each(data,function(idx,item){
+tbody.append("<tr>"+
+"<td style=\"border:1px solid #0094ff;\">"+
+item.AA +
+"</td>" +
+"<td style=\"border:1px solid #0094ff;\">"+
+item.BB +
+"</td>" +
+"<td style=\"border:1px solid #0094ff;\">"+
+item.CC +
+"</td>" +
+"<td style=\"border:1px solid #0094ff;\">"+
+item.DD +
+"</td>" +
+"<td style=\"border:1px solid #0094ff;\">"+
+item.EE +
+"</td>" +
+"</tr>");
+});
+},
+});
+}),
+});
+
+</script>
+</head>
+<body>
+<input id="Button2" type="button" value="show data" /><br/>
+<table class="table" style=border-collapse:collapse;width:60%;">
+<thead>
+<tr>
+<th style="border:1px solid #0094ff;">AA</th>
+<th style="border:1px solid #0094ff;">BB</th>
+<th style="border:1px solid #0094ff;">CC</th>
+<th style="border:1px solid #0094ff;">DD</th>
+<th style="border:1px solid #0094ff;">EE</th>
+</tr>
+</thead>
+<tbody id="tbody1"></tbody>
+</table>
+
+
+
+</body>
+</html>
