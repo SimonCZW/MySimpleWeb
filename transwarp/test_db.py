@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-
 import db
 
-db.create_engine('root', 'woaini520', 'university')
+db.create_engine('root', 'password', 'university')
 #双层with,测试可在__enter__和__exit__中插入输出观察.
 #这里为第一层with,第二层为_select的装饰器.
 with db.connection():

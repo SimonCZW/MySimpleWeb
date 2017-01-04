@@ -239,7 +239,7 @@ if __name__ == '__main__':
         credit = FloatField()
         precid = StringField()
 
-    db.create_engine('root', 'woaini520', 'university')
+    db.create_engine('root', 'password', 'university')
 
     course = {'cid':'a1'}
     print Course.get(**course)

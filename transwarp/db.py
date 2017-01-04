@@ -337,7 +337,7 @@ class _TransationCtx(object):
 
 
 if __name__ == '__main__':
-    create_engine('root', 'woaini520', 'university')
+    create_engine('root', 'password', 'university')
 
     #sql = "select * from ?"
     #data = select(sql, 'Course')

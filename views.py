@@ -112,7 +112,7 @@ def honor_count():
 
 
 if __name__ == '__main__':
-    db.create_engine('root', 'woaini520', 'university')
+    db.create_engine('root', 'password', 'university')
     with db.connection():
         app.run(host='0.0.0.0')
 

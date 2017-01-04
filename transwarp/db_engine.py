@@ -44,7 +44,7 @@ def create_engine(user, passwd, database, host='127.0.0.1', port=3306, **kw):
     engine = _Engine(MySQLdb.connect(**params)) #lambda会创建一个函数对象
 
 if __name__ == '__main__':
-    create_engine('root', 'woaini520', 'university')
+    create_engine('root', 'password', 'university')
 
     connection = engine.connect()
     cursor = connection.cursor()
