@@ -40,67 +40,55 @@
   <p><button>Students</button></p>
 </form>
 
-
-@{
-Layout=null
-}
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width"/>
-<title>Serialize_Deserialiaze_Demo</title>
-  <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
 <script type="text/javascript">
 
-$('#Button2').click(function(){
-$.ajax({
-Type:"POST",
-url:"/api/students",
-contentType:"application/json;charser=utf-8",
-success:function(data){
-var tbody =$('#tbody1').empty();
-$.each(data,function(idx,item){
-tbody.append("<tr>"+
-"<td style=\"border:1px solid #0094ff;\">"+
-item.AA +
-"</td>" +
-"<td style=\"border:1px solid #0094ff;\">"+
-item.BB +
-"</td>" +
-"<td style=\"border:1px solid #0094ff;\">"+
-item.CC +
-"</td>" +
-"<td style=\"border:1px solid #0094ff;\">"+
-item.DD +
-"</td>" +
-"<td style=\"border:1px solid #0094ff;\">"+
-item.EE +
-"</td>" +
-"</tr>");
-});
-},
-});
-}),
-});
+function findAll(){  
+      $.ajax({
+        type:"GET",  
+        url:"/api/students",  
+        dataType: "json", 
+        error:function(data){  
+              alert("连接超时");  
+          },  
+           success:function(data){  
+               $("#table").html("<tr><td>学号</td><td>姓名</td><td>出生地</td><td>生日</td><td>学院</td><td>性别</td></tr>");
+               for( i in data){
+                   $("#table").append("<tr><td>"+data[i].name+
+                           "</td><td>"+data[i].sid+
+                           "</td><td>"+data[i].sname+
+                           "</td><td>"+data[i].birthplace+
+                           "</td><td>"+data[i].birthdate+
+                           "</td><td>"+data[i].departmen+
+"</td><td>"+data[i].sex+
+                           "</td><td>"+"< a href=' ' >修改</ a>"+
+                           "</td><td>" +"< a href='javascript:;' >删除</ a>"+
+                           "</td><tr>")
+                 }
+              }  
+          });  
+       }
 
 </script>
-</head>
-<body>
-<input id="Button2" type="button" value="show data" /><br/>
-<table class="table" style=border-collapse:collapse;width:60%;">
+
+<h2>Basic DataGrid</h2>
+<p>The DataGrid is created from markup, no JavaScript code needed.</p >
+<div style="margin:20px 0;"></div>
+<!--<table class="easyui-datagrid" title="Basic DataGrid" style="width:700px;height:250px"
+data-options="singleSelect:true,collapsible:true,url:'datagrid_data1.json',method:'get'">
+-->
+<table class="easyui-datagrid" title="Basic DataGrid" style="width:700px;height:250px"
+data-options="url:'/api/students',method:'get'">
 <thead>
 <tr>
-<th style="border:1px solid #0094ff;">AA</th>
-<th style="border:1px solid #0094ff;">BB</th>
-<th style="border:1px solid #0094ff;">CC</th>
-<th style="border:1px solid #0094ff;">DD</th>
-<th style="border:1px solid #0094ff;">EE</th>
+<th data-options="field:'itemid',width:80">Item ID</th>
+<th data-options="field:'productid',width:100">Product</th>
+<th data-options="field:'listprice',width:80,align:'right'">List Price</th>
+<th data-options="field:'unitcost',width:80,align:'right'">Unit Cost</th>
+<th data-options="field:'attr1',width:250">Attribute</th>
+<th data-options="field:'status',width:60,align:'center'">Status</th>
 </tr>
 </thead>
-<tbody id="tbody1"></tbody>
 </table>
-
-
 
 </body>
 </html>
