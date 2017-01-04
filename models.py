@@ -27,6 +27,7 @@ class Employ(Model):
     cid = StringField(primary_key=True)
     cname = StringField()
     garde = IntegerField()
+    sclass = StringField()
 
 if __name__ == '__main__':
     db.create_engine('root', 'woaini520', 'university')

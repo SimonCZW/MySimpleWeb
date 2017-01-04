@@ -56,6 +56,7 @@ class StudentAdd(Resource):
         parser.add_argument('birthplace', type=str)
         parser.add_argument('birthdate', type=str)
         parser.add_argument('department', type=str)
+        parser.add_argument('sclass', type=str)
         args = parser.parse_args()
         #判断输入完整性
         for key,value in args.iteritems():
@@ -102,6 +103,7 @@ class StudentResource(Resource):
         parser.add_argument('birthplace', type=str)
         parser.add_argument('birthdate', type=str)
         parser.add_argument('department', type=str)
+        parser.add_argument('sclass', type=str)
         args = parser.parse_args()
         ModifyStudent = Student.get({'sid': sid})
         #判断是否存在数据
@@ -248,7 +250,11 @@ class EmployAdd(Resource):
         """
         返回列表
         """
-        datas =  Employ.find_all()
+        filter_course = request.args.get('course')
+        if filter_course:
+            datas = Employ.find_by('where cname="%s"' % filter_course)
+        else:
+            datas = Employ.find_all()
         #判断是否为空
         if datas != []:
             sort_by = request.args.get('sortby')
@@ -267,11 +273,22 @@ class EmployAdd(Resource):
         parser.add_argument('sid', type=int)
         parser.add_argument('cid', type=str)
         parser.add_argument('garde', type=int)
+        #parser.add_argument('sname', type=str)
+        #parser.add_argument('cname', type=str)
         args = parser.parse_args()
         #判断输入完整性
         for key,value in args.iteritems():
             if value is None:
                 return {'error': "Please input field: %s" % key },400
+        try:
+            sname = Student.get({'sid': args['sid']})['sname']
+            sclass = Student.get({'sid': args['sid']})['sclass']
+            cname = Course.get({'cid': args['cid']})['cname']
+            args['sname']=sname
+            args['cname']=cname
+            args['sclass']=sclass
+        except Exception,e:
+            return {'error': 'has no sid/cid data'},400
         employ = Employ(**args)
         try:
             insert_row = employ.insert()
@@ -357,6 +374,9 @@ class EmployResource(Resource):
         parser.add_argument('sid', type=int)
         parser.add_argument('cid', type=str)
         parser.add_argument('garde', type=int)
+        parser.add_argument('sname', type=str)
+        parser.add_argument('cname', type=str)
+        parser.add_argument('sclass', type=str)
         args = parser.parse_args()
         ModifyEmploy = Employ.get({'sid': sid, 'cid': cid})
         #判断是否存在数据
