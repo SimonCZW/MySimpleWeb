@@ -75,18 +75,33 @@ def getsclass():
             sclass[identify]['total_garde'] += int(data['garde'])
             sclass[identify]['count'] += 1
     class_total_garde = {}
+    #插入平均分
     for class_course,value in sclass.iteritems():
         #班级每科的平均分
         sclass[class_course]['avg_garde'] =  value['total_garde']/value['count']
         #获取班级和课程名
-#        sclass_name, course = class_course.split('_')
-#        if sclass_name not in class_total_garde:
-#            class_total_garde[sclass_name]={}
-#            class_total_garde[sclass_name]['total_garde'] = 0
-#        else:
-#            class_total_garde[sclass_name]['total_garde'] += sclass[class_course]['avg_garde']
-#    return jsonify(class_total_garde)
-    return jsonify(sclass)
+        sclass_name, course = class_course.split('_')
+        if sclass_name not in class_total_garde:
+            class_total_garde[sclass_name]={}
+            class_total_garde[sclass_name]['avg_total_garde'] = sclass[class_course]['avg_garde']
+            class_total_garde[sclass_name]['course_count'] = 1
+        else:
+            class_total_garde[sclass_name]['avg_total_garde'] += sclass[class_course]['avg_garde']
+            class_total_garde[sclass_name]['course_count'] += 1
+    for sclass_name, value in class_total_garde.iteritems():
+        class_total_garde[sclass_name]['avg_garde'] = value['avg_total_garde']/value['course_count']
+    #sort_by = request.args.get('sortby')
+    #order = request.args.get('order', 'desc')
+    #if sort_by:
+    #    #升序
+    #    if order == 'asc':
+    #        return jsonify(sorted(value, lambda x,y: cmp(x[sort_by], y[sort_by])))
+    #    #降序
+    #    if order == 'desc':
+    #        #class_total_garde = sorted(value, lambda x,y: cmp(y[sort_by],x[sort_by]))
+    #        return jsonify(sorted(value, lambda x,y: cmp(y[sort_by],x[sort_by])))
+    return jsonify(class_total_garde)
+    #return jsonify(sclass)
 
 @app.route('/api/honors')
 def honor_count():
