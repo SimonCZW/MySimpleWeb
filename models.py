@@ -19,10 +19,13 @@ class Student(Model):
     birthplace = StringField()
     birthdate = DateField()
     department = StringField()
+    sclass = StringField()
 
 class Employ(Model):
     sid = IntegerField(primary_key=True)
+    sname = StringField()
     cid = StringField(primary_key=True)
+    cname = StringField()
     garde = IntegerField()
 
 if __name__ == '__main__':
